@@ -20,7 +20,7 @@ from app.core.config import settings
 # Setup password hashing context
 # 'bcrypt' is the hashing algorithm.
 # 'deprecated="auto"' allows verifying older hashes if we migrate algorithms later.
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 def create_access_token(subject: Union[str, Any], expires_delta: Optional[timedelta] = None) -> str:
     """
