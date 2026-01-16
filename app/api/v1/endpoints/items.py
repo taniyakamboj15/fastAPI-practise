@@ -1,8 +1,3 @@
-"""
-app/api/v1/endpoints/items.py
-
-Item CRUD operations.
-"""
 
 from typing import Any, List
 from fastapi import APIRouter, Depends, HTTPException
@@ -12,9 +7,7 @@ from app.schemas import item as item_schema
 from app.schemas import user as user_schema
 from app.schemas import item as item_schema
 from app.schemas import user as user_schema
-# from app.db.session import db # REMOVED: Causing ImportError
 
-# Mock database for Items (Temporary)
 fake_items_db: dict = {}
 item_id_counter: int = 1
 
@@ -26,10 +19,7 @@ def read_items(
     limit: int = 100,
     current_user: user_schema.User = Depends(deps.get_current_active_user),
 ) -> Any:
-    """
-    Retrieve items.
-    """
-    # Filter items owned by the current user
+    
     user_items = [item for item in fake_items_db.values() if item["owner_id"] == current_user.id]
     return user_items[skip : skip + limit]
 
@@ -39,10 +29,8 @@ def create_item(
     item_in: item_schema.ItemCreate,
     current_user: user_schema.User = Depends(deps.get_current_active_user),
 ) -> Any:
-    """
-    Create new item.
-    """
-    item_data = item_in.model_dump() # Pydantic v2
+  
+    item_data = item_in.model_dump()
     global item_id_counter
     item_id = item_id_counter
     item_id_counter += 1
@@ -63,9 +51,7 @@ def update_item(
     item_in: item_schema.ItemUpdate,
     current_user: user_schema.User = Depends(deps.get_current_active_user),
 ) -> Any:
-    """
-    Update an item.
-    """
+   
     item = fake_items_db.get(id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -74,7 +60,7 @@ def update_item(
         
     update_data = item_in.model_dump(exclude_unset=True)
     
-    # Update dict
+ 
     for field in update_data:
         item[field] = update_data[field]
         
@@ -87,9 +73,7 @@ def read_item(
     id: int,
     current_user: user_schema.User = Depends(deps.get_current_active_user),
 ) -> Any:
-    """
-    Get item by ID.
-    """
+  
     item = fake_items_db.get(id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -103,9 +87,7 @@ def delete_item(
     id: int,
     current_user: user_schema.User = Depends(deps.get_current_active_user),
 ) -> Any:
-    """
-    Delete an item.
-    """
+   
     item = fake_items_db.get(id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")

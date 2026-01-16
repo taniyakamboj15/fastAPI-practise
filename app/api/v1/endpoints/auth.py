@@ -1,9 +1,3 @@
-"""
-app/api/v1/endpoints/auth.py
-
-Handling authentication endpoints.
-Refactored to use HttpOnly Cookies for security.
-"""
 
 from datetime import timedelta
 from typing import Any

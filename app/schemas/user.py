@@ -1,16 +1,4 @@
-"""
-app/schemas/user.py
 
-Pydantic models for User data.
-We separate "Schemas" (Pydantic models) from "Database Models" (ORM models).
-Since we are using an in-memory dict, these act as both validation and serialization layers.
-
-Structure:
-- UserBase: Shared properties
-- UserCreate: Properties to receive on creation
-- UserUpdate: Properties to receive on update
-- User: Properties to return to client
-"""
 
 from typing import Optional
 from pydantic import BaseModel, EmailStr

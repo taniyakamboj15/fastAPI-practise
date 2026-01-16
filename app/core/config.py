@@ -1,19 +1,9 @@
-"""
-app/core/config.py
-
-This file handles application configuration using Pydantic Settings.
-"""
-
 from typing import List, Union
 from pydantic import AnyHttpUrl, validator
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    """
-    Application settings model.
-    Pydantic will automatically parse environment variables.
-    """
-    
+   
     # PROJECT
     PROJECT_NAME: str = "FastAPI Production Template"
     API_V1_STR: str = "/api/v1"
@@ -41,10 +31,7 @@ class Settings(BaseSettings):
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
-        """
-        Validates and parses the CORS origins.
-        Accepts a comma-separated string or a list.
-        """
+       
         if isinstance(v, str) and not v.startswith("["):
             return [i.strip() for i in v.split(",")]
         elif isinstance(v, (list, str)):
@@ -54,5 +41,5 @@ class Settings(BaseSettings):
     class Config:
         case_sensitive = True
 
-# Instantiate settings to be imported throughout the app
+
 settings = Settings()

@@ -1,8 +1,3 @@
-"""
-app/api/v1/endpoints/users.py
-
-User CRUD operations.
-"""
 
 from typing import Any, List
 from fastapi import APIRouter, Body, Depends, HTTPException, status
@@ -38,10 +33,7 @@ def create_user_open(
     db: Session = Depends(deps.get_db),
     user_in: user_schema.UserCreate,
 ) -> Any:
-    """
-    Create new user without the need to be logged in (Registration).
-    """
-    # Check if user exists
+   
     statement = select(User).where(User.email == user_in.email)
     user_exists = db.exec(statement).first()
     
@@ -50,10 +42,7 @@ def create_user_open(
             status_code=400,
             detail="The user with this username already exists in the system.",
         )
-    
-    # Create new user
-    # We map Pydantic schema to SQLModel
-    # Note: In a real app we might use User.from_orm(user_in) if configured
+
     hashed_password = security.get_password_hash(user_in.password)
     
     db_user = User(
@@ -64,8 +53,7 @@ def create_user_open(
         is_superuser=False
     )
     
-    # Check if this is the first user in the DB
-    # (Optional logic for demo purposes)
+
     count_statement = select(User)
     first_user = db.exec(count_statement).first()
     if not first_user:
@@ -78,7 +66,7 @@ def create_user_open(
         return db_user
     except SQLAlchemyError as e:
         db.rollback()
-        # In production, log the real error using your logger
+       r
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Database error occurred while creating user."
@@ -94,9 +82,7 @@ def create_user_open(
 def read_user_me(
     current_user: user_schema.User = Depends(deps.get_current_active_user),
 ) -> Any:
-    """
-    Get current user.
-    """
+
     return current_user
 
 @router.put("/me", response_model=user_schema.User)
@@ -106,19 +92,7 @@ def update_user_me(
     user_in: user_schema.UserUpdate,
     current_user: user_schema.User = Depends(deps.get_current_active_user),
 ) -> Any:
-    """
-    Update own user.
-    """
-    # current_user is already a User model (from deps.get_current_user implementation update)
-    # But strictly speaking, deps returns a Pydantic model in the schema layer if we converted it?
-    # Let's check deps.py... it returns user_schema.User.
-    # But wait, we changed deps.py to return `user` which is an SQLModel instance!
-    # SQLModel instance is compatible with Pydantic response models, BUT:
-    # If we want to update it in DB, we need to make sure we are attached to the session or fetch it again.
-    # Since deps.get_current_user closes the session (it uses Depends(get_db)), 
-    # the object might be detached.
-    # Safer to fetch again or merge.
-    
+   
     db_user = db.get(User, current_user.id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
