@@ -70,7 +70,7 @@ This section maps the learning requirements to the specific files in this codeba
 ### 2. Start Services
 This project uses **4 separate terminals** to simulate a full microservices environment:
 
-### Mac / Linux Users
+### Mac 
 First, make the scripts executable:
 ```bash
 chmod +x run_worker.sh run_beat.sh run_flower.sh
