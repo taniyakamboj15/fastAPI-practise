@@ -1,75 +1,94 @@
-# FastAPI Production Backend Template
+# FastAPI Production-Ready Backend
 
-This project demonstrates an industry-standard backend architecture using FastAPI. It implements best practices for scalability, security, and maintainability.
+This project demonstrates a production-grade FastAPI application structure, implementing advanced concepts including **Authentication**, **Database Migrations**, and **Distributed Background Tasks** with Celery & Redis.
 
-## 📚 Key Concepts Implemented
+## 📌 Topic Implementation Map
 
-### 1. Project Structure 🏗️
-**File:** `app/` structure
-- **Why:** To separate concerns (logic vs storage vs API).
-- **Explanation:**
-    - `api/`: Handles HTTP requests (Routes).
-    - `core/`: Config and Security settings.
-    - `schemas/`: Pydantic models (Data validation).
-    - `db/`: Database logic (Simulated in-memory).
+This section maps the learning requirements to the specific files in this codebase.
 
-### 2. Pydantic Schemas (Data Validation) 🛡️
-**Files:** `app/schemas/user.py`, `app/schemas/item.py`
-- **Why:** Security & Validation. Prevents bad data from entering and sensitive data (like passwords) from leaking out.
-- **Concept:**
-    - `UserCreate`: Has password (Input).
-    - `User`: No password (Output).
-    - **Pass Keyword:** Used when a class inherits everything and adds nothing new (e.g., `ItemUpdate`).
+### 3.1 App Initialization & Path Operations
+| Concept | Implementation File | Description |
+| :--- | :--- | :--- |
+| **App Initialization** | [`app/main.py`](app/main.py) | FastAPI app creation with title, version, and CORS settings. |
+| **Path Operations** | [`app/api/v1/endpoints/users.py`](app/api/v1/endpoints/users.py) | Implements `GET`, `POST`, `PUT` HTTP methods. |
 
-### 3. Dependency Injection (DI) 💉
-**File:** `app/api/deps.py`
-- **Why:** Reusability and Testing.
-- **Usage:**
-    - `get_current_user`: Checks if a user is logged in before every request.
-    - `get_db`: Provides database access to endpoints.
-- **Benefit:** avoiding code duplication in every single endpoint.
+### 3.2 Request & Response Handling
+| Concept | Implementation File | Description |
+| :--- | :--- | :--- |
+| **Request Parsing** | [`app/api/v1/endpoints/auth.py`](app/api/v1/endpoints/auth.py) | Parses JSON body for Login credentials. |
+| **Status Codes** | [`app/api/v1/endpoints/users.py`](app/api/v1/endpoints/users.py) | Returns `404 Not Found` or `400 Bad Request` appropriately. |
+| **HTTP Headers/Cookies** | [`app/api/v1/endpoints/auth.py`](app/api/v1/endpoints/auth.py) | Sets `HttpOnly` cookies for secure JWT storage. |
 
-### 4. Authentication (Cookie + JWT) 🍪
-**Files:** `app/api/v1/endpoints/auth.py`, `app/core/security.py`
-- **Why:** Secure user sessions.
-- **Mechanism:**
-    - **HttpOnly Cookie:** Token is stored in a browser cookie that JavaScript cannot access (Prevents XSS attacks).
-    - **JWT (JSON Web Token):** Stateless authentication.
+### 3.3 Pydantic (Data Validation)
+| Concept | Implementation File | Description |
+| :--- | :--- | :--- |
+| **BaseModel & Schemas** | [`app/schemas/user.py`](app/schemas/user.py) | Defines `UserCreate`, `UserUpdate`, and `UserResponse` schemas. |
+| **Validation** | [`app/schemas/item.py`](app/schemas/item.py) | Enforces data types and required fields automatically. |
 
-### 5. internal Service Authentication (API Keys) 🔑
-**Files:** `app/api/v1/endpoints/utils.py`, `scripts/cron_email_sender.py`
-- **Why:** For Scripts, Cron Jobs, or Robots that cannot "Login" like humans.
-- **Mechanism:** Uses `X-API-Key` header.
-    - **Difference:** Cookies are for browsers (Auto-attach). Headers must be sent manually by the script.
+### 3.4 Dependency Injection
+| Concept | Implementation File | Description |
+| :--- | :--- | :--- |
+| **Depends() & DB Session** | [`app/api/deps.py`](app/api/deps.py) | `get_db()` yields a database session for each request. |
+| **Auth Dependency** | [`app/api/deps.py`](app/api/deps.py) | `get_current_active_user()` validates JWT and injects user object. |
 
-### 6. Router Versioning 🔄
-**File:** `app/api/v1/api.py`
-- **Why:** Future-proofing.
-- **Concept:** All routes are under `/api/v1/`. If we break changes later, we create `/api/v2/` without crashing the old app.
+### 3.5 Authentication & Authorization
+| Concept | Implementation File | Description |
+| :--- | :--- | :--- |
+| **JWT Config** | [`app/core/config.py`](app/core/config.py) | Configures `SECRET_KEY` and `ALGORITHM`. |
+| **Password Hashing** | [`app/core/security.py`](app/core/security.py) | Uses `bcrypt` (via `passlib`) for secure password hashing. |
+| **Login Flow** | [`app/api/v1/endpoints/auth.py`](app/api/v1/endpoints/auth.py) | Verifies credentials and issues Access Tokens. |
 
-### 7. Middleware & Custom Headers ⏱️
-**File:** `app/main.py`
-- **Why:** To intercept every request globally.
-- **Example:** Added `X-Process-Time` header to track how long the server takes to respond.
+### 3.6 Middleware
+| Concept | Implementation File | Description |
+| :--- | :--- | :--- |
+| **CORS** | [`app/main.py`](app/main.py) | Configures Cross-Origin Resource Sharing for frontend access. |
+| **Custom Middleware** | [`app/core/middleware.py`](app/core/middleware.py) | `LogRequestMiddleware` logs every request for audit trails. |
 
-### 8. Configuration Checking ⚙️
-**File:** `app/core/config.py`
-- **Why:** To manage secrets and environment variables safely using `Pydantic Settings`.
-- **Typing:** Uses `List` and `Union` to strictly define allowed data types.
+### 3.7 Database Integration (SQLModel + Alembic)
+| Concept | Implementation File | Description |
+| :--- | :--- | :--- |
+| **ORM Models** | [`app/models/user.py`](app/models/user.py) | Defines Database Tables using SQLModel. |
+| **Session Management** | [`app/db/session.py`](app/db/session.py) | Configures SQLAlchemy Engine and Session factories. |
+| **Migrations** | [`alembic/`](alembic/) | Manages schema changes (Generated via `alembic revision --autogenerate`). |
+
+### 3.8 Background Tasks (Celery + Redis)
+| Concept | Implementation File | Description |
+| :--- | :--- | :--- |
+| **Celery Setup** | [`app/core/celery_app.py`](app/core/celery_app.py) | Connects to Redis Broker and Configures Backend. |
+| **Task Definitions** | [`app/worker.py`](app/worker.py) | Defines `@celery_app.task` for long-running jobs (e.g., video processing). |
+| **Scheduled Tasks (Beat)**| [`app/core/celery_app.py`](app/core/celery_app.py) | Configures Cron-like schedules (e.g., Run every 30 seconds). |
+
+---
 
 ## 🚀 How to Run
 
-1.  **Start Server:**
-    ```bash
-    uvicorn app.main:app --reload
-    ```
-2.  **Run Internal Script:**
-    ```bash
-    python scripts/cron_email_sender.py
-    ```
-3.  **View Docs:**
-    - [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+### 1. Requirements
+*   Python 3.10+
+*   PostgreSQL
+*   Redis (for Celery)
 
-## 📝 Ignoring Unwanted Files
-**File:** `.gitignore`
-- Configured to ignore sensitive files (`.env`), compiled code (`__pycache__`), and local configs (`venv/`, `.vscode/`).
+### 2. Start Services
+This project uses **4 separate terminals** to simulate a full microservices environment:
+
+**Terminal 1: FastAPI Backend**
+```bash
+uvicorn app.main:app --reload
+# Access API Docs: http://localhost:8000/docs
+```
+
+**Terminal 2: Celery Worker (Task Processor)**
+```bash
+.\run_worker.bat
+```
+
+**Terminal 3: Celery Beat (Scheduler)**
+```bash
+.\run_beat.bat
+# Triggers scheduled tasks automatically
+```
+
+**Terminal 4: Flower (Monitoring Dashboard)**
+```bash
+.\run_flower.bat
+# Dashboard: http://localhost:5555
+```

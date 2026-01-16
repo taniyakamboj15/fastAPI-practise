@@ -13,16 +13,17 @@ from app.core.config import settings
 from app.core import security
 from app.schemas import user as user_schema
 from app.schemas import token as token_schema
-from app.db.session import db, FakeDB
+from app.db.session import SessionLocal
 
 def get_db() -> Generator:
     """
     Dependency to get the database session.
     """
     try:
+        db = SessionLocal()
         yield db
     finally:
-        pass
+        db.close()
 
 def get_token_from_cookie(request: Request) -> str:
     """
@@ -36,8 +37,11 @@ def get_token_from_cookie(request: Request) -> str:
         )
     return token
 
+from sqlmodel import Session, select
+from app.models.user import User
+
 def get_current_user(
-    db: FakeDB = Depends(get_db),
+    db: Session = Depends(get_db),
     token: str = Depends(get_token_from_cookie)
 ) -> user_schema.User:
     """
@@ -54,15 +58,24 @@ def get_current_user(
             detail="Could not validate credentials",
         )
     
-    user = db.users.get(int(token_data.sub)) if token_data.sub and token_data.sub.isdigit() else None
-    
-    if not user and token_data.sub:
-        user = db.get_user_by_email(token_data.sub)
-
+    user = None
+    if token_data.sub:
+        if token_data.sub.isdigit():
+             user = db.get(User, int(token_data.sub))
+        
+        if not user:
+             # Fallback to lookup by email if sub wasn't an ID or ID lookup failed
+             # (Assuming sub could be email in some legacy system, though typically it's ID)
+             # In our code, we use email as username usually, but sub is usually ID. 
+             # Let's support email lookup for robustness if ID fails or isn't digit.
+             statement = select(User).where(User.email == token_data.sub)
+             results = db.exec(statement)
+             user = results.first()
+        
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
         
-    return user_schema.User(**user)
+    return user # User model is compatible with User schema
 
 def get_current_active_user(
     current_user: user_schema.User = Depends(get_current_user),
