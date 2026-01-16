@@ -70,25 +70,26 @@ This section maps the learning requirements to the specific files in this codeba
 ### 2. Start Services
 This project uses **4 separate terminals** to simulate a full microservices environment:
 
-**Terminal 1: FastAPI Backend**
+
+### Mac / Linux Users
+First, make the scripts executable:
 ```bash
-uvicorn app.main:app --reload
-# Access API Docs: http://localhost:8000/docs
+chmod +x run_worker.sh run_beat.sh run_flower.sh
 ```
 
-**Terminal 2: Celery Worker (Task Processor)**
+Then run them in separate terminals:
+
+**Terminal 2: Worker**
 ```bash
-.\run_worker.bat
+./run_worker.sh
 ```
 
-**Terminal 3: Celery Beat (Scheduler)**
+**Terminal 3: Beat**
 ```bash
-.\run_beat.bat
-# Triggers scheduled tasks automatically
+./run_beat.sh
 ```
 
-**Terminal 4: Flower (Monitoring Dashboard)**
+**Terminal 4: Flower**
 ```bash
-.\run_flower.bat
-# Dashboard: http://localhost:5555
+./run_flower.sh
 ```
