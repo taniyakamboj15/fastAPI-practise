@@ -66,7 +66,7 @@ def create_user_open(
         return db_user
     except SQLAlchemyError as e:
         db.rollback()
-       r
+
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Database error occurred while creating user."
